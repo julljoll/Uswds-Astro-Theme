@@ -1,0 +1,312 @@
+---
+import UsaAlert from '../uswds/UsaAlert.astro';
+import UsaCard from '../uswds/UsaCard.astro';
+---
+<div class="grid-row grid-gap">
+  <!-- Main Chat Conversation Column -->
+  <div class="tablet:grid-col-8">
+    <div class="bg-white border-1px border-base-lighter radius-md padding-3 shadow-1 min-h-30">
+      <div class="display-flex flex-justify flex-align-center border-bottom-1px border-base-lighter padding-bottom-2 margin-bottom-3">
+        <div>
+          <h2 class="font-sans-lg text-bold margin-0 text-primary-darker">
+            Asistente Agéntico OpenRAG
+          </h2>
+          <p class="font-sans-3xs text-base margin-top-05 margin-bottom-0">
+            Alimentado por IBM watsonx, Langflow y OpenSearch con estilos USWDS
+          </p>
+        </div>
+        <div class="display-flex flex-align-center gap-1">
+          <span id="connection-pill" class="usa-tag bg-warning-dark text-white font-sans-3xs text-bold">
+            Modo Fallback / Demo
+          </span>
+          <button id="clear-chat-btn" class="usa-button usa-button--outline usa-button--unstyled font-sans-2xs text-base-dark hover:text-secondary">
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Stream -->
+      <div id="chat-messages" class="overflow-y-auto padding-right-1" style="max-height: 480px; min-height: 320px;">
+        <!-- Welcome Message -->
+        <div class="chat-message-bubble chat-bubble-assistant">
+          <div class="display-flex flex-align-center margin-bottom-1">
+            <span class="usa-tag bg-primary text-white font-sans-3xs margin-right-1">OpenRAG</span>
+            <span class="font-sans-3xs text-base">Asistente Oficial</span>
+          </div>
+          <div class="usa-prose font-sans-sm text-base-darkest">
+            <p>
+              ¡Hola! Soy tu asistente de conocimiento empresarial impulsado por <strong>IBM OpenRAG</strong> y estilizado bajo el <strong>U.S. Web Design System (USWDS)</strong>.
+            </p>
+            <p class="margin-bottom-1">
+              Puedes hacerme preguntas sobre tus documentos, estándares del gobierno de EE.UU., configuración de Watsonx o cómo funciona la arquitectura de RAG agéntico.
+            </p>
+            <div class="display-flex flex-wrap gap-1 margin-top-2">
+              <button class="usa-button usa-button--outline font-sans-3xs quick-query-btn" data-query="¿Qué es IBM OpenRAG y cómo se compone?">
+                ¿Qué es IBM OpenRAG?
+              </button>
+              <button class="usa-button usa-button--outline font-sans-3xs quick-query-btn" data-query="¿Cómo implementa este theme los estilos de USWDS?">
+                Integración con USWDS
+              </button>
+              <button class="usa-button usa-button--outline font-sans-3xs quick-query-btn" data-query="¿Cómo funciona la ingesta de documentos con Docling y OpenSearch?">
+                Ingesta con Docling
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Form -->
+      <form id="chat-form" class="margin-top-3 border-top-1px border-base-lighter padding-top-2">
+        <label class="usa-label font-sans-xs text-bold margin-bottom-1" for="user-prompt">
+          Escribe tu pregunta o solicitud
+        </label>
+        <div class="display-flex gap-2">
+          <div class="flex-fill">
+            <textarea
+              class="usa-textarea margin-0 font-sans-sm"
+              id="user-prompt"
+              name="prompt"
+              rows="2"
+              placeholder="Ejemplo: ¿Cuáles son las directrices de accesibilidad Section 508 aplicadas en el theme?"
+              required
+            ></textarea>
+          </div>
+          <div class="display-flex flex-column flex-justify-end">
+            <button type="submit" id="submit-btn" class="usa-button bg-primary hover:bg-primary-dark">
+              Enviar
+            </button>
+          </div>
+        </div>
+        <p class="font-sans-3xs text-base-light margin-top-1 margin-bottom-0">
+          Tus consultas son contrastadas con las fuentes indexadas mediante búsqueda híbrida vectorial y semántica.
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Evidence & Sources Sidebar Column -->
+  <div class="tablet:grid-col-4">
+    <UsaCard heading="Evidencias y Citas" tag="Docling / RAG">
+      <p class="font-sans-3xs text-base margin-bottom-2">
+        Pasajes del conocimiento recuperados que respaldan la última respuesta generada:
+      </p>
+      <div id="sources-container" class="display-flex flex-column gap-2">
+        <div class="padding-2 bg-base-lightest border-1px border-base-lighter radius-sm text-center">
+          <p class="font-sans-3xs text-base-light margin-0">
+            Realiza una consulta para ver las fuentes y citas documentales aquí.
+          </p>
+        </div>
+      </div>
+
+      <div slot="footer" class="padding-top-2 border-top-1px border-base-lighter">
+        <a href="/documents" class="usa-link font-sans-2xs">
+          Administrar base de conocimientos &rarr;
+        </a>
+      </div>
+    </UsaCard>
+
+    <div class="margin-top-3">
+      <UsaCard heading="Modelos Activos" tag="IBM watsonx">
+        <ul class="usa-list usa-list--unstyled font-sans-3xs text-base-dark">
+          <li class="margin-bottom-1">
+            <strong>Generador LLM:</strong> <span class="text-primary text-bold">Granite-3.1-8B-Instruct</span>
+          </li>
+          <li class="margin-bottom-1">
+            <strong>Embeddings:</strong> <span class="text-primary text-bold">ibm/slate-30m-english</span>
+          </li>
+          <li class="margin-bottom-1">
+            <strong>Parser Docling:</strong> <span class="text-success-dark text-bold">Activo (Tablas + OCR)</span>
+          </li>
+          <li>
+            <strong>Vector DB:</strong> <span class="text-base-dark text-bold">OpenSearch (k-NN)</span>
+          </li>
+        </ul>
+      </UsaCard>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentChatId = 'chat-' + Date.now();
+  const chatMessages = document.getElementById('chat-messages');
+  const chatForm = document.getElementById('chat-form') as HTMLFormElement;
+  const userPrompt = document.getElementById('user-prompt') as HTMLTextAreaElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const sourcesContainer = document.getElementById('sources-container');
+  const connectionPill = document.getElementById('connection-pill');
+  const clearChatBtn = document.getElementById('clear-chat-btn');
+
+  // Check health
+  fetch('/api/health')
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.connected && connectionPill) {
+        connectionPill.textContent = 'OpenRAG Conectado';
+        connectionPill.className = 'usa-tag bg-success-dark text-white font-sans-3xs text-bold';
+      }
+    })
+    .catch(() => {});
+
+  // Clear chat
+  clearChatBtn?.addEventListener('click', () => {
+    currentChatId = 'chat-' + Date.now();
+    if (chatMessages) {
+      chatMessages.innerHTML = `
+        <div class="chat-message-bubble chat-bubble-assistant">
+          <div class="display-flex flex-align-center margin-bottom-1">
+            <span class="usa-tag bg-primary text-white font-sans-3xs margin-right-1">OpenRAG</span>
+            <span class="font-sans-3xs text-base">Conversación reiniciada</span>
+          </div>
+          <div class="usa-prose font-sans-sm text-base-darkest">
+            <p>La sesión ha sido reiniciada. ¿En qué puedo ayudarte ahora?</p>
+          </div>
+        </div>
+      `;
+    }
+    if (sourcesContainer) {
+      sourcesContainer.innerHTML = `
+        <div class="padding-2 bg-base-lightest border-1px border-base-lighter radius-sm text-center">
+          <p class="font-sans-3xs text-base-light margin-0">Esperando nueva consulta...</p>
+        </div>
+      `;
+    }
+  });
+
+  // Quick query buttons
+  document.querySelectorAll('.quick-query-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const q = (e.currentTarget as HTMLButtonElement).dataset.query;
+      if (q && userPrompt) {
+        userPrompt.value = q;
+        chatForm?.dispatchEvent(new Event('submit', { cancelable: true }));
+      }
+    });
+  });
+
+  // Submit Handler
+  chatForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const prompt = userPrompt.value.trim();
+    if (!prompt) return;
+
+    // Append User Message
+    appendMessage('user', prompt);
+    userPrompt.value = '';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Pensando...';
+
+    // Append Loading Assistant Bubble
+    const loadingId = 'loading-' + Date.now();
+    const loadingElem = document.createElement('div');
+    loadingElem.id = loadingId;
+    loadingElem.className = 'chat-message-bubble chat-bubble-assistant';
+    loadingElem.innerHTML = `
+      <div class="display-flex flex-align-center margin-bottom-1">
+        <span class="usa-tag bg-primary text-white font-sans-3xs margin-right-1">OpenRAG</span>
+        <span class="font-sans-3xs text-base">Generando respuesta y recuperando evidencias...</span>
+      </div>
+      <div class="font-sans-sm text-base">Buscando en OpenSearch y procesando con IBM watsonx...</div>
+    `;
+    chatMessages?.appendChild(loadingElem);
+    chatMessages?.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt, chatId: currentChatId }),
+      });
+
+      const data = await response.json();
+      document.getElementById(loadingId)?.remove();
+
+      if (data.error) {
+        appendMessage('assistant', `Error: ${data.error}`);
+      } else {
+        appendMessage('assistant', data.text, data.sources);
+        renderSources(data.sources || []);
+      }
+    } catch (err: any) {
+      document.getElementById(loadingId)?.remove();
+      appendMessage('assistant', `Hubo un error de conexión: ${err.message}`);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar';
+      chatMessages?.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+    }
+  });
+
+  function appendMessage(role: 'user' | 'assistant', text: string, sources?: any[]) {
+    if (!chatMessages) return;
+    const bubble = document.createElement('div');
+    bubble.className = `chat-message-bubble ${role === 'user' ? 'chat-bubble-user' : 'chat-bubble-assistant'}`;
+
+    let sourcesHtml = '';
+    if (sources && sources.length > 0) {
+      sourcesHtml = `
+        <div class="margin-top-2 border-top-1px border-base-lighter padding-top-1 display-flex flex-wrap gap-1">
+          <span class="font-sans-3xs text-bold text-base margin-right-1">Fuentes:</span>
+          ${sources
+            .map(
+              (s: any) => `
+            <span class="source-badge" title="Puntaje de relevancia: ${(s.score * 100).toFixed(0)}%">
+              📄 ${s.filename} ${s.page ? `(p. ${s.page})` : ''}
+            </span>
+          `
+            )
+            .join('')}
+        </div>
+      `;
+    }
+
+    bubble.innerHTML = `
+      <div class="display-flex flex-align-center margin-bottom-1">
+        <span class="usa-tag ${role === 'user' ? 'bg-primary-darker' : 'bg-primary'} text-white font-sans-3xs margin-right-1">
+          ${role === 'user' ? 'Tú' : 'OpenRAG'}
+        </span>
+        <span class="font-sans-3xs text-base">${new Date().toLocaleTimeString()}</span>
+      </div>
+      <div class="usa-prose font-sans-sm text-base-darkest" style="white-space: pre-wrap;">${escapeHtml(text)}</div>
+      ${sourcesHtml}
+    `;
+    chatMessages.appendChild(bubble);
+  }
+
+  function renderSources(sources: any[]) {
+    if (!sourcesContainer) return;
+    if (sources.length === 0) {
+      sourcesContainer.innerHTML = `
+        <div class="padding-2 bg-base-lightest border-1px border-base-lighter radius-sm text-center">
+          <p class="font-sans-3xs text-base-light margin-0">No se requirieron fuentes externas para esta respuesta.</p>
+        </div>
+      `;
+      return;
+    }
+
+    sourcesContainer.innerHTML = sources
+      .map(
+        (s: any, idx: number) => `
+        <div class="padding-2 bg-base-lightest border-1px border-base-lighter radius-sm shadow-1">
+          <div class="display-flex flex-justify flex-align-center margin-bottom-1">
+            <span class="font-sans-3xs text-bold text-primary-darkest">#${idx + 1} ${s.filename}</span>
+            <span class="usa-tag bg-info-light text-info-darkest font-sans-3xs">
+              Score: ${(s.score * 100).toFixed(0)}%
+            </span>
+          </div>
+          <p class="font-sans-3xs text-base-darker margin-0 line-clamp-3">
+            "${escapeHtml(s.text)}"
+          </p>
+          ${s.page ? `<span class="font-sans-3xs text-base-light display-block margin-top-1">Página ${s.page}</span>` : ''}
+        </div>
+      `
+      )
+      .join('');
+  }
+
+  function escapeHtml(str: string) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+</script>

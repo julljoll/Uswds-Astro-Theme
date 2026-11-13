@@ -1,0 +1,56 @@
+---
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = '/' } = Astro.props;
+
+const navItems = [
+  { href: '/', label: 'Asistente RAG' },
+  { href: '/documents', label: 'Documentos e Ingesta' },
+  { href: '/search', label: 'Búsqueda Híbrida' },
+  { href: '/settings', label: 'Configuración IBM' },
+];
+---
+<div class="usa-overlay"></div>
+<header class="usa-header usa-header--basic">
+  <div class="usa-nav-container">
+    <div class="usa-navbar">
+      <div class="usa-logo" id="basic-logo">
+        <em class="usa-logo__text">
+          <a href="/" title="OpenRAG - U.S. Web Design System Theme" class="display-flex flex-align-center">
+            <span class="usa-tag bg-primary-darker text-white margin-right-1 font-sans-2xs text-uppercase text-bold">IBM</span>
+            <span class="font-sans-md text-bold">OpenRAG</span>
+            <span class="font-sans-3xs text-base-light margin-left-1 text-italic">USWDS Theme</span>
+          </a>
+        </em>
+      </div>
+      <button type="button" class="usa-menu-btn">Menú</button>
+    </div>
+    <nav aria-label="Primary navigation" class="usa-nav">
+      <button type="button" class="usa-nav__close">
+        <img src="/uswds/img/usa-icons/close.svg" role="img" alt="Cerrar" />
+      </button>
+      <ul class="usa-nav__primary usa-accordion">
+        {navItems.map((item) => {
+          const isActive = currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href));
+          return (
+            <li class="usa-nav__primary-item">
+              <a
+                href={item.href}
+                class={`usa-nav__link ${isActive ? 'usa-current' : ''}`}
+              >
+                <span>{item.label}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      <div class="usa-nav__secondary">
+        <span class="usa-tag bg-success-dark text-white font-sans-3xs text-bold">
+          MCP Habilitado
+        </span>
+      </div>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,95 @@
+---
+import UsaBanner from '../components/uswds/UsaBanner.astro';
+import UsaHeader from '../components/uswds/UsaHeader.astro';
+import UsaFooter from '../components/uswds/UsaFooter.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'IBM OpenRAG - USWDS Theme',
+  description = 'Tema accesible de Astro basado en el U.S. Web Design System para IBM OpenRAG',
+} = Astro.props;
+
+const currentPath = Astro.url.pathname;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <!-- USWDS Init (must be loaded before CSS/DOM to prevent FOUC) -->
+    <script is:inline src="/uswds/js/uswds-init.min.js"></script>
+    <!-- USWDS Compiled Stylesheet -->
+    <link rel="stylesheet" href="/uswds/css/uswds.min.css" />
+    <style is:global>
+      /* Smooth styles aligned with USWDS tokens */
+      :root {
+        --openrag-primary: #112e51;
+        --openrag-accent: #005ea2;
+        --openrag-highlight: #e1f3f8;
+      }
+      .chat-message-bubble {
+        border-radius: 6px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }
+      .chat-bubble-user {
+        background-color: #f0f4f8;
+        border-left: 4px solid #005ea2;
+      }
+      .chat-bubble-assistant {
+        background-color: #ffffff;
+        border-left: 4px solid #00a3e0;
+        border: 1px solid #dfe1e2;
+        border-left-width: 4px;
+      }
+      .source-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        background: #edf5fa;
+        color: #1a4480;
+        border: 1px solid #cfe2ee;
+      }
+      .source-badge:hover {
+        background: #cfe2ee;
+        text-decoration: none;
+      }
+      .mono-preview {
+        font-family: 'Roboto Mono', Menlo, Consolas, monospace;
+        font-size: 0.85rem;
+        background: #1b1b1b;
+        color: #f0f0f0;
+        padding: 0.75rem;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body class="bg-base-lightest min-vh-100 display-flex flex-column">
+    <a class="usa-skipnav" href="#main-content">Saltar al contenido principal</a>
+    <UsaBanner />
+    <UsaHeader currentPath={currentPath} />
+
+    <main id="main-content" class="flex-fill padding-y-4">
+      <div class="grid-container">
+        <slot />
+      </div>
+    </main>
+
+    <UsaFooter />
+
+    <!-- USWDS JavaScript Runtime -->
+    <script is:inline src="/uswds/js/uswds.min.js"></script>
+  </body>
+</html>

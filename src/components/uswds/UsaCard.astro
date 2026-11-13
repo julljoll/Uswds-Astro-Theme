@@ -1,0 +1,29 @@
+---
+interface Props {
+  heading?: string;
+  tag?: string;
+  class?: string;
+}
+
+const { heading, tag, class: className = '' } = Astro.props;
+---
+<div class={`usa-card ${className}`}>
+  <div class="usa-card__container">
+    {heading && (
+      <header class="usa-card__header">
+        <div class="display-flex flex-justify flex-align-center">
+          <h3 class="usa-card__heading font-sans-md margin-bottom-0">{heading}</h3>
+          {tag && <span class="usa-tag bg-primary-lighter text-primary-darkest font-sans-3xs">{tag}</span>}
+        </div>
+      </header>
+    )}
+    <div class="usa-card__body">
+      <slot />
+    </div>
+    {Astro.slots.has('footer') && (
+      <div class="usa-card__footer">
+        <slot name="footer" />
+      </div>
+    )}
+  </div>
+</div>

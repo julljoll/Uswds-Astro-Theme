@@ -1,0 +1,33 @@
+---
+interface Props {
+  type?: 'info' | 'warning' | 'error' | 'success';
+  heading?: string;
+  slim?: boolean;
+  noIcon?: boolean;
+  class?: string;
+}
+
+const {
+  type = 'info',
+  heading,
+  slim = false,
+  noIcon = false,
+  class: className = '',
+} = Astro.props;
+
+const classes = [
+  'usa-alert',
+  `usa-alert--${type}`,
+  slim ? 'usa-alert--slim' : '',
+  noIcon ? 'usa-alert--no-icon' : '',
+  className,
+].filter(Boolean).join(' ');
+---
+<div class={classes} role="region" aria-label={heading || type}>
+  <div class="usa-alert__body">
+    {heading && <h4 class="usa-alert__heading">{heading}</h4>}
+    <div class="usa-alert__text">
+      <slot />
+    </div>
+  </div>
+</div>

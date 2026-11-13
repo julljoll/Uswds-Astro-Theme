@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ChatInterface from '../components/openrag/ChatInterface.astro';
+import UsaAlert from '../components/uswds/UsaAlert.astro';
+---
+<BaseLayout title="OpenRAG Asistente | USWDS Astro Theme">
+  <!-- Status & Architecture Banner -->
+  <div class="margin-bottom-4">
+    <UsaAlert type="info" heading="Tema de Astro para IBM OpenRAG y USWDS" slim={false}>
+      Este tema integra los estándares y componentes del <strong>U.S. Web Design System (USWDS 3)</strong> con la arquitectura agéntica de <strong>IBM OpenRAG</strong> (Langflow, Docling y OpenSearch). Cumple con los estándares de accesibilidad Section 508 y directrices 21st Century IDEA.
+    </UsaAlert>
+  </div>
+
+  <!-- Interactive Chat Interface -->
+  <ChatInterface />
+
+  <!-- Features Grid -->
+  <div class="margin-top-6">
+    <h3 class="font-sans-lg text-bold text-primary-darker margin-bottom-3 border-bottom-2px border-primary-light padding-bottom-1">
+      Capacidades del Sistema
+    </h3>
+    <div class="grid-row grid-gap">
+      <div class="tablet:grid-col-4">
+        <div class="bg-white padding-3 border-1px border-base-lighter radius-md height-full">
+          <div class="usa-tag bg-primary-darker text-white margin-bottom-1 font-sans-3xs">Docling Ingest</div>
+          <h4 class="font-sans-md text-bold margin-top-1 margin-bottom-1">Comprensión Documental</h4>
+          <p class="font-sans-xs text-base">
+            Procesa archivos PDF complejos, tablas financieras y documentos escaneados mediante OCR de alta fidelidad gracias a Docling.
+          </p>
+        </div>
+      </div>
+      <div class="tablet:grid-col-4">
+        <div class="bg-white padding-3 border-1px border-base-lighter radius-md height-full">
+          <div class="usa-tag bg-accent-cool-darker text-white margin-bottom-1 font-sans-3xs">OpenSearch k-NN</div>
+          <h4 class="font-sans-md text-bold margin-top-1 margin-bottom-1">Búsqueda Híbrida</h4>
+          <p class="font-sans-xs text-base">
+            Fusión de recuperación densa por vectores (embeddings semánticos) y recuperación léxica BM25 para una precisión y recall óptimos.
+          </p>
+        </div>
+      </div>
+      <div class="tablet:grid-col-4">
+        <div class="bg-white padding-3 border-1px border-base-lighter radius-md height-full">
+          <div class="usa-tag bg-success-dark text-white margin-bottom-1 font-sans-3xs">Model Context Protocol</div>
+          <h4 class="font-sans-md text-bold margin-top-1 margin-bottom-1">Integración MCP</h4>
+          <p class="font-sans-xs text-base">
+            Compatible con servidores MCP nativos, incluyendo el endpoint de Astro Docs y herramientas remotas de IBM watsonx.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

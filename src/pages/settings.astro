@@ -1,0 +1,182 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import UsaCard from '../components/uswds/UsaCard.astro';
+import UsaAlert from '../components/uswds/UsaAlert.astro';
+---
+<BaseLayout title="Configuración IBM watsonx & OpenRAG | USWDS Theme">
+  <div class="margin-bottom-4">
+    <h1 class="font-sans-xl text-bold text-primary-darkest margin-bottom-1">
+      Configuración del Sistema
+    </h1>
+    <p class="font-sans-sm text-base margin-top-0">
+      Ajusta los parámetros de conexión con <strong>IBM watsonx.data</strong>, el backend de <strong>OpenRAG</strong> y servidores <strong>MCP</strong>.
+    </p>
+  </div>
+
+  <div class="grid-row grid-gap">
+    <!-- Main Configuration Form -->
+    <div class="tablet:grid-col-8">
+      <div class="bg-white padding-4 border-1px border-base-lighter radius-md shadow-1">
+        <form id="settings-form" class="usa-form usa-form--large maxw-none">
+          <h2 class="font-sans-md text-bold text-primary-darkest border-bottom-1px border-base-lighter padding-bottom-1 margin-top-0">
+            Conexión OpenRAG Backend
+          </h2>
+
+          <label class="usa-label font-sans-xs text-bold" for="openrag-url">
+            URL del Servicio OpenRAG
+          </label>
+          <span class="usa-hint font-sans-3xs">
+            Endpoint local (ej. http://localhost:3000) o instancia remota en IBM Cloud.
+          </span>
+          <input
+            class="usa-input"
+            id="openrag-url"
+            name="openragUrl"
+            type="url"
+            value="http://localhost:3000"
+            required
+          />
+
+          <label class="usa-label font-sans-xs text-bold margin-top-2" for="openrag-api-key">
+            OpenRAG API Key (Opcional en modo IBM Auth)
+          </label>
+          <input
+            class="usa-input"
+            id="openrag-api-key"
+            name="openragApiKey"
+            type="password"
+            placeholder="orag_••••••••••••••••"
+          />
+
+          <h2 class="font-sans-md text-bold text-primary-darkest border-bottom-1px border-base-lighter padding-bottom-1 margin-top-4">
+            Credenciales IBM watsonx / watsonx.data
+          </h2>
+
+          <label class="usa-label font-sans-xs text-bold" for="watsonx-project-id">
+            watsonx.ai Project ID
+          </label>
+          <input
+            class="usa-input"
+            id="watsonx-project-id"
+            name="watsonxProjectId"
+            type="text"
+            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          />
+
+          <label class="usa-label font-sans-xs text-bold margin-top-2" for="watsonx-apikey">
+            IBM Cloud API Key
+          </label>
+          <input
+            class="usa-input"
+            id="watsonx-apikey"
+            name="watsonxApiKey"
+            type="password"
+            placeholder="••••••••••••••••••••••••••••••••"
+          />
+
+          <label class="usa-label font-sans-xs text-bold margin-top-2" for="watsonx-url">
+            watsonx API Endpoint Region
+          </label>
+          <select class="usa-select font-sans-xs" id="watsonx-url" name="watsonxUrl">
+            <option value="https://us-south.ml.cloud.ibm.com">Dallas (us-south) - Predeterminado</option>
+            <option value="https://eu-de.ml.cloud.ibm.com">Frankfurt (eu-de)</option>
+            <option value="https://jp-tok.ml.cloud.ibm.com">Tokyo (jp-tok)</option>
+            <option value="https://au-syd.ml.cloud.ibm.com">Sydney (au-syd)</option>
+          </select>
+
+          <h2 class="font-sans-md text-bold text-primary-darkest border-bottom-1px border-base-lighter padding-bottom-1 margin-top-4">
+            Model Context Protocol (MCP)
+          </h2>
+          <p class="font-sans-3xs text-base">
+            El tema incluye soporte nativo para servidores de contexto de modelos:
+          </p>
+          <div class="padding-2 bg-base-lightest border-1px border-base-lighter radius-sm font-sans-3xs">
+            <ul class="usa-list margin-0 padding-left-2">
+              <li><strong>Astro Docs MCP:</strong> <code>https://mcp.docs.astro.build/mcp</code> (Activo)</li>
+              <li><strong>OpenRAG Remote MCP:</strong> <code>http://localhost:3000/mcp</code></li>
+            </ul>
+          </div>
+
+          <div class="margin-top-4 display-flex gap-2">
+            <button type="submit" class="usa-button bg-primary">
+              Guardar Configuración
+            </button>
+            <button type="button" id="test-connection-btn" class="usa-button usa-button--outline">
+              Verificar Conexión
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Status Column -->
+    <div class="tablet:grid-col-4">
+      <UsaCard heading="Estado del Backend" tag="Diagnóstico">
+        <div id="status-card-body">
+          <div class="padding-2 bg-base-lightest border-1px border-base-lighter radius-sm text-center">
+            <p class="font-sans-3xs text-base margin-0">Consultando estado del servicio...</p>
+          </div>
+        </div>
+      </UsaCard>
+
+      <div class="margin-top-3">
+        <UsaCard heading="Variables de Entorno" tag=".env">
+          <p class="font-sans-3xs text-base margin-bottom-1">
+            Puedes configurar estas opciones de forma permanente en tu archivo <code>.env</code>:
+          </p>
+          <pre class="mono-preview margin-0"><code>OPENRAG_URL=http://localhost:3000
+OPENRAG_API_KEY=tu_clave
+IBM_WATSONX_APIKEY=tu_ibm_key
+IBM_WATSONX_PROJECT_ID=tu_id
+DOCLING_ENABLED=true
+OPENSEARCH_URL=http://localhost:9200</code></pre>
+        </UsaCard>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const testBtn = document.getElementById('test-connection-btn');
+  const statusBody = document.getElementById('status-card-body');
+
+  async function checkStatus() {
+    if (!statusBody) return;
+    try {
+      const res = await fetch('/api/health');
+      const data = await res.json();
+      if (data.connected) {
+        statusBody.innerHTML = `
+          <div class="usa-alert usa-alert--success usa-alert--slim margin-0">
+            <div class="usa-alert__body">
+              <p class="usa-alert__text font-sans-3xs">
+                <strong>Conectado:</strong> Instancia en vivo detectada en ${data.url}.
+              </p>
+            </div>
+          </div>
+        `;
+      } else {
+        statusBody.innerHTML = `
+          <div class="usa-alert usa-alert--warning usa-alert--slim margin-0">
+            <div class="usa-alert__body">
+              <p class="usa-alert__text font-sans-3xs">
+                <strong>Modo Demo / Fallback:</strong> No se detectó un servidor OpenRAG activo en ${data.url}. El theme funciona con datos simulados hasta que se inicie el contenedor de OpenRAG.
+              </p>
+            </div>
+          </div>
+        `;
+      }
+    } catch (e: any) {
+      statusBody.innerHTML = `
+        <div class="usa-alert usa-alert--error usa-alert--slim margin-0">
+          <div class="usa-alert__body">
+            <p class="usa-alert__text font-sans-3xs">Error al verificar: ${e.message}</p>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  testBtn?.addEventListener('click', checkStatus);
+  checkStatus();
+</script>

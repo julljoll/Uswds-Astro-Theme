@@ -1,0 +1,202 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import UsaCard from '../components/uswds/UsaCard.astro';
+import UsaAlert from '../components/uswds/UsaAlert.astro';
+import { getMockDocuments } from '../lib/openrag';
+
+const initialDocs = getMockDocuments();
+---
+<BaseLayout title="Documentos e Ingesta | IBM OpenRAG">
+  <div class="margin-bottom-4">
+    <h1 class="font-sans-xl text-bold text-primary-darkest margin-bottom-1">
+      Base de Conocimientos y Pipeline de Ingesta
+    </h1>
+    <p class="font-sans-sm text-base margin-top-0">
+      Gestiona e ingesta documentos a través del pipeline de <strong>Docling</strong> y almacénalos en <strong>OpenSearch</strong>.
+    </p>
+  </div>
+
+  <div class="grid-row grid-gap">
+    <!-- Upload Section -->
+    <div class="tablet:grid-col-5">
+      <UsaCard heading="Subir Nuevo Documento" tag="Docling Pipeline">
+        <form id="upload-form" class="usa-form usa-form--large maxw-none">
+          <label class="usa-label font-sans-xs text-bold" for="doc-title">
+            Título del Documento
+          </label>
+          <input
+            class="usa-input"
+            id="doc-title"
+            name="title"
+            type="text"
+            placeholder="Ej. Directrices Operativas Federales 2026"
+            required
+          />
+
+          <label class="usa-label font-sans-xs text-bold margin-top-2" for="doc-file">
+            Archivo a procesar
+          </label>
+          <input
+            class="usa-file-input"
+            id="doc-file"
+            name="file"
+            type="file"
+            accept=".pdf,.docx,.txt,.md,.json,.html"
+            required
+          />
+
+          <!-- Docling Parsing Options -->
+          <div class="margin-top-3 padding-2 bg-base-lightest border-1px border-base-lighter radius-sm">
+            <span class="usa-label font-sans-3xs text-bold text-uppercase text-base-dark display-block margin-bottom-1">
+              Opciones de Extracción Docling
+            </span>
+            <div class="usa-checkbox margin-bottom-1">
+              <input
+                class="usa-checkbox__input"
+                id="docling-tables"
+                type="checkbox"
+                name="tables"
+                checked
+              />
+              <label class="usa-checkbox__label font-sans-3xs" for="docling-tables">
+                Extracción de estructura de tablas
+              </label>
+            </div>
+            <div class="usa-checkbox margin-bottom-1">
+              <input
+                class="usa-checkbox__input"
+                id="docling-ocr"
+                type="checkbox"
+                name="ocr"
+                checked
+              />
+              <label class="usa-checkbox__label font-sans-3xs" for="docling-ocr">
+                OCR para texto escaneado e imágenes
+              </label>
+            </div>
+            <div class="usa-checkbox">
+              <input
+                class="usa-checkbox__input"
+                id="docling-pictures"
+                type="checkbox"
+                name="pictures"
+              />
+              <label class="usa-checkbox__label font-sans-3xs" for="docling-pictures">
+                Descripción de figuras e imágenes
+              </label>
+            </div>
+          </div>
+
+          <div class="margin-top-3">
+            <button type="submit" id="upload-btn" class="usa-button bg-primary width-full">
+              Iniciar Ingesta en OpenSearch
+            </button>
+          </div>
+        </form>
+      </UsaCard>
+    </div>
+
+    <!-- Documents Table Section -->
+    <div class="tablet:grid-col-7">
+      <div class="bg-white padding-3 border-1px border-base-lighter radius-md shadow-1">
+        <div class="display-flex flex-justify flex-align-center margin-bottom-2">
+          <h2 class="font-sans-md text-bold margin-0 text-primary-darkest">
+            Documentos Indexados en la Base
+          </h2>
+          <span class="usa-tag bg-primary-lighter text-primary-darkest font-sans-3xs" id="doc-counter">
+            {initialDocs.length} documentos
+          </span>
+        </div>
+
+        <div class="usa-table-container--scrollable" tabindex="0">
+          <table class="usa-table usa-table--striped width-full font-sans-xs" id="docs-table">
+            <thead>
+              <tr>
+                <th scope="col">Documento</th>
+                <th scope="col">Formato</th>
+                <th scope="col">Chunks</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="docs-tbody">
+              {initialDocs.map((doc) => (
+                <tr>
+                  <th scope="row">
+                    <span class="text-bold text-primary-darkest">{doc.title}</span>
+                    <span class="font-sans-3xs text-base-light display-block">{doc.filename} ({doc.size})</span>
+                  </th>
+                  <td>{doc.docType}</td>
+                  <td>
+                    <span class="usa-tag bg-base-lighter text-base-darkest font-sans-3xs">{doc.chunksCount}</span>
+                  </td>
+                  <td>
+                    <span class="usa-tag bg-success-light text-success-darkest font-sans-3xs text-bold">
+                      Indexado
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('upload-form') as HTMLFormElement;
+  const btn = document.getElementById('upload-btn') as HTMLButtonElement;
+  const titleInput = document.getElementById('doc-title') as HTMLInputElement;
+  const fileInput = document.getElementById('doc-file') as HTMLInputElement;
+  const tbody = document.getElementById('docs-tbody');
+  const counter = document.getElementById('doc-counter');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = titleInput.value.trim();
+    const file = fileInput.files?.[0];
+    if (!title || !file) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Procesando con Docling...';
+
+    try {
+      const payload = {
+        title,
+        filename: file.name,
+        docType: file.type || 'Docling Ingest',
+        size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+        chunksCount: Math.floor(Math.random() * 50) + 15,
+      };
+
+      const res = await fetch('/api/documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (data.success && tbody) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <th scope="row">
+            <span class="text-bold text-primary-darkest">${data.document.title}</span>
+            <span class="font-sans-3xs text-base-light display-block">${data.document.filename} (${data.document.size})</span>
+          </th>
+          <td>${data.document.docType}</td>
+          <td><span class="usa-tag bg-base-lighter text-base-darkest font-sans-3xs">${data.document.chunksCount}</span></td>
+          <td><span class="usa-tag bg-success-light text-success-darkest font-sans-3xs text-bold">Indexado</span></td>
+        `;
+        tbody.prepend(tr);
+        form.reset();
+        alert('Documento procesado exitosamente por Docling e indexado en OpenSearch.');
+      }
+    } catch (err: any) {
+      alert('Error al ingestar documento: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Iniciar Ingesta en OpenSearch';
+    }
+  });
+</script>

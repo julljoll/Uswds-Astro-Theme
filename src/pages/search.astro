@@ -1,0 +1,149 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import UsaCard from '../components/uswds/UsaCard.astro';
+---
+<BaseLayout title="Búsqueda Híbrida | IBM OpenRAG">
+  <div class="margin-bottom-4">
+    <h1 class="font-sans-xl text-bold text-primary-darkest margin-bottom-1">
+      Búsqueda Semántica e Híbrida en OpenSearch
+    </h1>
+    <p class="font-sans-sm text-base margin-top-0">
+      Consulta la base vectorial de OpenRAG combinando similitud de embeddings densos y búsqueda léxica BM25.
+    </p>
+  </div>
+
+  <!-- Search Input Bar -->
+  <div class="bg-white padding-3 border-1px border-base-lighter radius-md shadow-1 margin-bottom-4">
+    <form id="search-form" class="usa-search usa-search--big" role="search">
+      <label class="usa-sr-only" for="search-input">Buscar en la base de conocimientos</label>
+      <input
+        class="usa-input"
+        id="search-input"
+        type="search"
+        name="q"
+        placeholder="Escribe términos clave o consultas semánticas (ej. Section 508, Docling, IBM watsonx)..."
+      />
+      <button class="usa-button bg-primary" type="submit">
+        <span class="usa-search__submit-text">Buscar</span>
+        <img src="/uswds/img/usa-icons/search--white.svg" class="usa-search__submit-icon" alt="Buscar" />
+      </button>
+    </form>
+
+    <!-- Tuning Filters -->
+    <div class="grid-row grid-gap margin-top-3 padding-top-2 border-top-1px border-base-lighter">
+      <div class="tablet:grid-col-6">
+        <label class="usa-label font-sans-3xs text-bold" for="threshold-range">
+          Umbral Mínimo de Relevancia (Score): <span id="threshold-val" class="text-primary">70%</span>
+        </label>
+        <input
+          class="usa-range"
+          id="threshold-range"
+          name="threshold"
+          type="range"
+          min="50"
+          max="95"
+          value="70"
+        />
+      </div>
+      <div class="tablet:grid-col-6">
+        <label class="usa-label font-sans-3xs text-bold" for="search-mode-select">
+          Modo de Recuperación
+        </label>
+        <select class="usa-select font-sans-xs margin-0" id="search-mode-select">
+          <option value="hybrid">Híbrido (k-NN + BM25 Fusionado) - Recomendado</option>
+          <option value="dense">Solo Vectorial Denso (Embeddings)</option>
+          <option value="bm25">Solo Léxico BM25</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Stream -->
+  <div id="results-container">
+    <div class="bg-white padding-4 border-1px border-base-lighter radius-md text-center">
+      <p class="font-sans-sm text-base margin-0">
+        Ingresa una búsqueda arriba para inspeccionar los pasajes y chunks recuperados de OpenSearch.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('search-form') as HTMLFormElement;
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const container = document.getElementById('results-container');
+  const thresholdRange = document.getElementById('threshold-range') as HTMLInputElement;
+  const thresholdVal = document.getElementById('threshold-val');
+
+  thresholdRange?.addEventListener('input', () => {
+    if (thresholdVal) thresholdVal.textContent = `${thresholdRange.value}%`;
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const query = input.value.trim();
+    if (!query || !container) return;
+
+    container.innerHTML = `
+      <div class="bg-white padding-4 border-1px border-base-lighter radius-md text-center">
+        <p class="font-sans-sm text-base margin-0">Consultando índice OpenSearch con embeddings...</p>
+      </div>
+    `;
+
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      const results = data.results || [];
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white padding-4 border-1px border-base-lighter radius-md text-center">
+            <p class="font-sans-sm text-base margin-0">No se encontraron resultados para "${query}".</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="margin-bottom-2 display-flex flex-justify flex-align-center">
+          <h2 class="font-sans-md text-bold margin-0 text-primary-darker">
+            Resultados para "${data.query}" (${results.length} coincidencias)
+          </h2>
+        </div>
+        <div class="display-flex flex-column gap-3">
+          ${results
+            .map(
+              (r: any, idx: number) => `
+            <div class="bg-white padding-3 border-1px border-base-lighter radius-md shadow-1">
+              <div class="display-flex flex-justify flex-align-center margin-bottom-1">
+                <span class="font-sans-xs text-bold text-primary-darkest">
+                  #${idx + 1} Archivo: ${r.filename} ${r.page ? `(Página ${r.page})` : ''}
+                </span>
+                <span class="usa-tag bg-info-lighter text-info-darkest font-sans-3xs text-bold">
+                  Relevancia: ${(r.score * 100).toFixed(0)}%
+                </span>
+              </div>
+              <div class="padding-2 bg-base-lightest border-1px border-base-lighter radius-sm font-sans-xs text-base-darkest margin-y-1">
+                "${r.text}"
+              </div>
+              <div class="font-sans-3xs text-base-light display-flex gap-2">
+                <span>Formato: ${r.mimetype || 'Docling Text'}</span>
+                <span>Índice: openrag-knowledge-chunks</span>
+              </div>
+            </div>
+          `
+            )
+            .join('')}
+        </div>
+      `;
+    } catch (err: any) {
+      container.innerHTML = `
+        <div class="usa-alert usa-alert--error">
+          <div class="usa-alert__body">
+            <p class="usa-alert__text">Error en la búsqueda: ${err.message}</p>
+          </div>
+        </div>
+      `;
+    }
+  });
+</script>

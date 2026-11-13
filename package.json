@@ -1,0 +1,21 @@
+{
+  "name": "uswds-astro-theme",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "USWDS Astro Theme designed for IBM OpenRAG integration",
+  "scripts": {
+    "dev": "astro dev --host",
+    "start": "astro dev --host",
+    "build": "astro build",
+    "preview": "astro preview --host"
+  },
+  "dependencies": {
+    "@astrojs/node": "^11.1.12",
+    "@uswds/uswds": "^3.14.0",
+    "astro": "^7.4.11",
+    "openrag-sdk": "^0.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

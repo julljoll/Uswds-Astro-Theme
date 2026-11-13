@@ -1,0 +1,51 @@
+---
+interface AccordionItem {
+  id: string;
+  title: string;
+  content: string;
+  expanded?: boolean;
+}
+
+interface Props {
+  items: AccordionItem[];
+  bordered?: boolean;
+  multiselectable?: boolean;
+  class?: string;
+}
+
+const {
+  items = [],
+  bordered = true,
+  multiselectable = true,
+  class: className = '',
+} = Astro.props;
+
+const classes = [
+  'usa-accordion',
+  bordered ? 'usa-accordion--bordered' : '',
+  className,
+].filter(Boolean).join(' ');
+---
+<div class={classes} data-multiselectable={multiselectable ? 'true' : undefined}>
+  {items.map((item) => (
+    <>
+      <h4 class="usa-accordion__heading font-sans-sm">
+        <button
+          type="button"
+          class="usa-accordion__button font-sans-sm"
+          aria-expanded={item.expanded ? 'true' : 'false'}
+          aria-controls={item.id}
+        >
+          {item.title}
+        </button>
+      </h4>
+      <div
+        id={item.id}
+        class="usa-accordion__content usa-prose font-sans-xs"
+        hidden={!item.expanded}
+      >
+        <p>{item.content}</p>
+      </div>
+    </>
+  ))}
+</div>
